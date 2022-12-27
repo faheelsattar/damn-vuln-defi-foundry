@@ -5,6 +5,7 @@ import {Utilities} from "../../utils/Utilities.sol";
 import "forge-std/Test.sol";
 
 import {SideEntranceLenderPool} from "../../../src/Contracts/side-entrance/SideEntranceLenderPool.sol";
+import {Attacker} from "../../../src/Contracts/side-entrance/Attacker.sol";
 
 contract SideEntrance is Test {
     uint256 internal constant ETHER_IN_POOL = 1_000e18;
@@ -13,6 +14,7 @@ contract SideEntrance is Test {
     SideEntranceLenderPool internal sideEntranceLenderPool;
     address payable internal attacker;
     uint256 public attackerInitialEthBalance;
+    Attacker internal att;
 
     function setUp() public {
         utils = new Utilities();
@@ -29,6 +31,10 @@ contract SideEntrance is Test {
 
         attackerInitialEthBalance = address(attacker).balance;
 
+        vm.startPrank(address(attacker));
+        att = new Attacker(address(sideEntranceLenderPool));
+        vm.stopPrank();
+
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
     }
 
@@ -36,6 +42,8 @@ contract SideEntrance is Test {
         /**
          * EXPLOIT START *
          */
+
+        att.hitFlashLoan();
 
         /**
          * EXPLOIT END *
