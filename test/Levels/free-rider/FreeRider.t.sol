@@ -10,6 +10,8 @@ import {DamnValuableNFT} from "../../../src/Contracts/DamnValuableNFT.sol";
 import {DamnValuableToken} from "../../../src/Contracts/DamnValuableToken.sol";
 import {WETH9} from "../../../src/Contracts/WETH9.sol";
 
+import {Attacker} from "../../../src/Contracts/free-rider/Attacker.sol";
+
 contract FreeRider is Test {
     // The NFT marketplace will have 6 tokens, at 15 ETH each
     uint256 internal constant NFT_PRICE = 15 ether;
@@ -31,6 +33,8 @@ contract FreeRider is Test {
     IUniswapV2Pair internal uniswapV2Pair;
     IUniswapV2Factory internal uniswapV2Factory;
     IUniswapV2Router02 internal uniswapV2Router;
+    Attacker internal att;
+
     WETH9 internal weth;
     address payable internal buyer;
     address payable internal attacker;
@@ -128,15 +132,26 @@ contract FreeRider is Test {
         vm.stopPrank();
 
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
+
+        att = new Attacker{value: 5 ether}(deployer);
     }
 
     function testExploit() public {
         /**
          * EXPLOIT START *
          */
-        vm.startPrank(attacker, attacker);
 
-        vm.stopPrank();
+        ///@bug uniswap v2 not deploying due to update in foundry
+
+        ///@exploit :
+        //1) take flashSwap of 1 eth from uniswap v2.
+        //2) buyMany from the marketPlace with the price of one(15 ether)
+        //   as the check of msg.value in for loop will always pass
+        //3) the contract will start sending its own balance to the owner
+        //4) place an order for sell as your nft to drain the contract further
+        //5) transfer nft to the FreeRiderBuyer contract
+        //6) Repay the flash swap
+
         /**
          * EXPLOIT END *
          */
