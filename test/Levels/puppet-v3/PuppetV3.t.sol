@@ -72,9 +72,11 @@ contract PuppetV3 is Test {
 
         vm.startPrank(deployer);
 
+        //init UniswapV3Factory
         uniswapV3Factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
         vm.label(address(uniswapV3Factory), "uniswapV3Factory");
 
+        //init WETH
         weth = IWETH(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
         vm.label(address(weth), "WETH");
 
@@ -84,9 +86,11 @@ contract PuppetV3 is Test {
         dvt = new DamnValuableToken();
         vm.label(address(dvt), "DVT");
 
+        //init NonfungiblePositionManager
         uniswapPositionManager = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
         vm.label(address(uniswapPositionManager), "uniswapPositionManager");
 
+        //init SwapRouter
         uniswapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
         vm.label(address(uniswapRouter), "uniswapRouter");
 
@@ -100,6 +104,7 @@ contract PuppetV3 is Test {
         uniswapPositionManager.createAndInitializePoolIfNecessary(token0, token1, FEE, SQRTPRICEX96);
         address uniswapPoolAddress = uniswapV3Factory.getPool(address(weth), address(dvt), FEE);
 
+        //init UniswapV3Pool
         uniswapV3Pool = IUniswapV3Pool(uniswapPoolAddress);
         vm.label(address(uniswapV3Pool), "uniswapV3Pool");
 
@@ -123,6 +128,7 @@ contract PuppetV3 is Test {
             deadline: block.timestamp * 2
         });
 
+        //provides liquidity minting ERC721 position
         uniswapPositionManager.mint(params);
 
         puppetV3Pool = new PuppetV3Pool(address(weth), address(dvt), address(uniswapV3Pool));
@@ -135,6 +141,7 @@ contract PuppetV3 is Test {
         vm.roll(block.number + 1);
         vm.stopPrank();
 
+        //deploying Attacker contract
         vm.prank(attacker);
         attackerContract = new Attacker(address(uniswapRouter), address(puppetV3Pool), address(dvt),address(weth));
 
@@ -147,11 +154,18 @@ contract PuppetV3 is Test {
          */
         vm.startPrank(attacker);
         dvt.approve(address(attackerContract), type(uint256).max);
+
+        // STEP 1
         attackerContract.movePrice();
 
-        vm.warp(block.timestamp + 100);
+        // STEP 2
+        // updates the block.timestamp to block.timestamp + 105
+        //1.75 minutes
+        vm.warp(block.timestamp + 105);
+        // updates the block.number to block.number + 1
         vm.roll(block.number + 1);
 
+        // STEP3
         attackerContract.borrowFromPoolAtCheap();
         vm.stopPrank();
         /**

