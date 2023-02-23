@@ -25,6 +25,9 @@ Puppet:
 PuppetV2:
 	forge test --match-test testExploit --match-contract PuppetV2
 
+PuppetV3:
+	forge test --match-test testExploit --match-contract PuppetV3 --fork-url $(forkurl) --fork-block-number $(forkblock)
+
 FreeRider:
 	forge test --match-test testExploit --match-contract FreeRider
 
@@ -34,6 +37,6 @@ Backdoor:
 Climber:
 	forge test --match-test testExploit --match-contract Climber
 
-JuniorMiners:
-	forge test --match-test testExploit --match-contract JuniorMiners
+SafeMiners:
+	forge test --match-test testExploit --match-contract SafeMiners
 

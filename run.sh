@@ -43,19 +43,23 @@ case $1 in
     forge test --match-contract PuppetV2
     ;;
 
-  free-rider | 10 | free)
+  puppet-v3 | 10 | pupp3)
+    forge test --match-contract PuppetV3 --fork-url $2 --fork-block-number $3
+    ;;
+
+  free-rider | 11 | free)
     forge test --match-contract FreeRider
     ;;
 
-  backdoor | 11 | back)
+  backdoor | 12 | back)
     forge test --match-contract Backdoor
     ;;
 
-  climber | 12 | clim)
+  climber | 13 | clim)
     forge test --match-contract Climber
     ;;
 
-  safe-miners | 13 | safe)
+  safe-miners | 14 | safe)
     forge test --match-contract SafeMiners
     ;;
 
